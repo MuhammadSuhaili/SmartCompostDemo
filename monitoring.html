@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pantau Kondisi Kompos — Smart Compost</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media (prefers-color-scheme: dark) {
+      body { background:#0b0f0c; color:#e8f7ee; }
+      .card { background:#0f1712 !important; border-color:#1e2a22 !important; }
+    }
+  </style>
+</head>
+<body class="bg-emerald-50/40 text-slate-800">
+  <!-- NAV -->
+  <nav class="sticky top-0 z-50 backdrop-blur bg-white/70 border-b border-emerald-100">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2 font-bold text-emerald-700">
+        <span class="text-2xl">🌱</span> Smart Compost
+      </a>
+      <div class="hidden md:flex gap-4 text-sm">
+        <a href="index.html">Beranda</a>
+        <a href="index.html#tutorial">Tutorial</a>
+        <a href="index.html#visualisasi">Visualisasi</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HEADER -->
+  <header class="max-w-6xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-extrabold text-emerald-700">Pantau Kondisi Kompos</h1>
+    <p class="muted mt-2">Lihat data sensor secara langsung dan kendalikan pengaduk otomatis.</p>
+  </header>
+
+  <!-- SENSOR DATA -->
+  <main class="max-w-6xl mx-auto px-4 space-y-8 pb-20">
+    <div class="grid md:grid-cols-3 gap-6">
+      <!-- Suhu & Kelembapan -->
+      <div class="card bg-white rounded-2xl border border-emerald-100 p-6 shadow">
+        <h2 class="text-xl font-semibold text-emerald-700">🌡️ DHT22</h2>
+        <p class="mt-2">Suhu: <span id="tempValue" class="font-bold">-- °C</span></p>
+        <p>Kelembapan: <span id="humValue" class="font-bold">-- %</span></p>
+      </div>
+      <!-- Soil Moisture -->
+      <div class="card bg-white rounded-2xl border border-emerald-100 p-6 shadow">
+        <h2 class="text-xl font-semibold text-emerald-700">🌱 Soil Moisture</h2>
+        <p class="mt-2">Kelembaban Tanah: <span id="soilValue" class="font-bold">-- %</span></p>
+      </div>
+      <!-- MQ6 Gas -->
+      <div class="card bg-white rounded-2xl border border-emerald-100 p-6 shadow">
+        <h2 class="text-xl font-semibold text-emerald-700">🧪 MQ6 (Gas)</h2>
+        <p class="mt-2">Konsentrasi Gas: <span id="gasValue" class="font-bold">-- ppm</span></p>
+      </div>
+    </div>
+
+    <!-- CONTROL PANEL -->
+    <div class="card bg-white rounded-2xl border border-emerald-100 p-6 shadow">
+      <h2 class="text-xl font-semibold text-emerald-700 mb-4">⚙️ Kontrol Pengaduk Otomatis</h2>
+      <div class="flex gap-4">
+        <button id="onBtn" class="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700">
+          Hidupkan
+        </button>
+        <button id="offBtn" class="px-4 py-2 rounded-xl bg-red-500 text-white hover:bg-red-600">
+          Matikan
+        </button>
+      </div>
+      <p id="statusText" class="mt-3 text-sm text-slate-600">Status: <span class="font-semibold">Tidak Aktif</span></p>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-emerald-100">
+    <div class="max-w-6xl mx-auto px-4 py-6 text-center text-sm text-slate-500">
+      © 2025 Smart Compost — Pantauan Kompos
+    </div>
+  </footer>
+
+  <!-- SCRIPT SIMULASI DATA -->
+  <script>
+    // Simulasi nilai sensor
+    function random(min,max){ return (Math.random()*(max-min)+min).toFixed(1); }
+
+    function updateSensors(){
+      document.getElementById("tempValue").textContent = random(25, 40) + " °C";
+      document.getElementById("humValue").textContent  = random(40, 80) + " %";
+      document.getElementById("soilValue").textContent = random(20, 70) + " %";
+      document.getElementById("gasValue").textContent  = random(100, 800) + " ppm";
+    }
+    setInterval(updateSensors, 3000);
+    updateSensors();
+
+    // Kontrol Pengaduk
+    const statusText = document.getElementById("statusText").querySelector("span");
+    document.getElementById("onBtn").addEventListener("click", ()=>{
+      statusText.textContent = "Aktif";
+      statusText.className = "font-semibold text-emerald-600";
+    });
+    document.getElementById("offBtn").addEventListener("click", ()=>{
+      statusText.textContent = "Tidak Aktif";
+      statusText.className = "font-semibold text-red-600";
+    });
+  </script>
+</body>
+</html>

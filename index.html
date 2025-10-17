@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Edukasi Kompos — Smart Compost</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="color-scheme" content="light dark" />
+  <style>
+    /* Dark mode basic */
+    @media (prefers-color-scheme: dark) {
+      :root { color-scheme: dark; }
+      body { background:#0b0f0c; color:#e8f7ee; }
+      .card { background:#0f1712 !important; border-color:#1e2a22 !important; }
+      .muted { color:#a7b6ad !important; }
+      .accent { color:#55d59c !important; }
+      .chip { background:#112019; border-color:#1f3a2e; }
+    }
+  </style>
+</head>
+<body class="bg-emerald-50/40 text-slate-800">
+  <!-- NAV -->
+  <nav class="sticky top-0 z-50 backdrop-blur bg-white/70 border-b border-emerald-100">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2 font-bold text-emerald-700">
+        <span class="text-2xl">🌱</span> Smart Compost — Edukasi
+      </a>
+      <div class="hidden md:flex gap-4 text-sm">
+        <a href="#/apa-itu" class="hover:text-emerald-700">Apa itu Kompos</a>
+        <a href="#/manfaat" class="hover:text-emerald-700">Manfaat</a>
+        <a href="#/tutorial" class="hover:text-emerald-700">Tutorial</a>
+        <a href="#/visualisasi" class="hover:text-emerald-700">Visualisasi</a>
+        <a href="monitoring.html" class="hover:text-sky-600 font-semibold">Pantau Kompos</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ROOT -->
+  <main id="app" class="max-w-6xl mx-auto px-4 space-y-14 pb-20"></main>
+
+  <!-- TEMPLATES via JS Renderer -->
+  <script>
+    /* ---------------------------
+     * Mini Router (hash-based)
+     * --------------------------- */
+    const routes = {
+      '': homePage,
+      '/apa-itu': sectionApaItu,
+      '/manfaat': sectionManfaat,
+      '/tutorial': tutorialLanding,
+      '/tutorial/pilih-bahan': () => stepPage(0),
+      '/tutorial/cacah-susun': () => stepPage(1),
+      '/tutorial/kelembapan-aerasi': () => stepPage(2),
+      '/tutorial/pantau-suhu': () => stepPage(3),
+      '/tutorial/pematangan': () => stepPage(4),
+      '/visualisasi': sectionVisualisasi,
+    };
+
+    /* ---------------------------
+     * Data Tahapan & Helpers
+     * --------------------------- */
+    const STEPS = [
+      {
+        slug: 'pilih-bahan',
+        nomor: 1,
+        judul: 'Pilih Bahan',
+        ringkas:
+          'Gunakan bahan organik: daun kering, sisa sayur, kulit buah. Hindari plastik & logam.',
+        detail:
+          'Kelompokkan bahan menjadi “hijau/basah” (sisa dapur, rumput segar) dan “coklat/kering” (daun kering, kardus tanpa tinta). Hindari daging/minyak agar tidak mengundang hama. Idealnya perbandingan C:N seimbang (kurang lebih 2 bagian coklat : 1 bagian hijau).',
+        visual:
+          '🧺🌿 Daun kering + sisa sayur (pilih yang bebas plastik dan logam).',
+        tips: [
+          'Potong kontaminan (plastik/stiker buah) sebelum dimasukkan.',
+          'Simpan bahan hijau di wadah tertutup untuk mengurangi bau sebelum dicampur.',
+        ],
+      },
+      {
+        slug: 'cacah-susun',
+        nomor: 2,
+        judul: 'Cacah & Susun',
+        ringkas:
+          'Potong kecil-kecil, lalu susun bergantian bahan hijau (basah) & coklat (kering).',
+        detail:
+          'Pencacahan memperbesar luas permukaan sehingga mikroba bekerja lebih cepat. Susun lapisan: dasar coklat (drainase), lalu hijau, ulangi. Tebal tiap lapisan 5–10 cm. Akhiri dengan lapisan coklat untuk mengurangi bau dan serangga.',
+        visual:
+          '🧱🔪 Potong kecil; susun berlapis: coklat ↔ hijau.',
+        tips: [
+          'Untuk starter, bisa tambahkan sedikit kompos matang/pupuk kandang di lapisan awal.',
+          'Basahi tipis setiap dua lapisan agar lembap merata.',
+        ],
+      },
+      {
+        slug: 'kelembapan-aerasi',
+        nomor: 3,
+        judul: 'Atur Kelembapan & Aerasi',
+        ringkas:
+          'Jaga kelembapan ±50–60% (seperti spons diperas) & aduk 5–7 hari sekali.',
+        detail:
+          'Kelembapan ideal membuat mikroba aktif tanpa menciptakan kondisi anaerob. Lakukan uji genggam: bila diperas terasa lembap dan hanya menetes 1–2 tetes, itu pas. Aduk rutin untuk memasukkan oksigen dan meratakan panas/kelembapan.',
+        visual:
+          '💧🌬️ Uji genggam + aduk berkala (5–7 hari).',
+        tips: [
+          'Terlalu basah → tambah bahan coklat dan aduk; terlalu kering → semprot air.',
+          'Pastikan ada lubang ventilasi/cerobong udara pada wadah.',
+        ],
+      },
+      {
+        slug: 'pantau-suhu',
+        nomor: 4,
+        judul: 'Pantau Suhu',
+        ringkas:
+          'Fase aktif biasanya hangat/panas. Jika kering maka semprot; jika bau maka tambah coklat & aduk.',
+        detail:
+          'Pada 3–14 hari awal, suhu dapat meningkat (mesofilik–termofilik). Gunakan termometer kompos bila ada. Suhu terlalu tinggi/kering → semprot air dan aduk; bau menyengat → kurang oksigen/kelebihan hijau, tambahkan coklat dan aduk.',
+        visual:
+          '🌡️🔥 Kenaikan suhu = penguraian aktif.',
+        tips: [
+          'Rotasi posisi bahan tengah–pinggir saat pengadukan untuk pemerataan.',
+          'Jika menggunakan sensor (Smart Compost), pantau grafik suhu/kelembapan.',
+        ],
+      },
+      {
+        slug: 'pematangan',
+        nomor: 5,
+        judul: 'Pematangan',
+        ringkas:
+          'Kompos matang gelap, remah, dan tidak berbau menyengat.',
+        detail:
+          'Ketika aktivitas mikroba menurun, suhu turun mendekati lingkungan. Bentuk kompos menjadi butiran remah gelap, bau tanah segar. Simpan di tempat teduh & kering.',
+        visual:
+          '🟤🌱 Tekstur remah, bau tanah—siap pakai.',
+        tips: [
+          'Jangan gunakan kompos yang masih panas/berbau tajam pada tanaman.',
+          'Simpan kompos matang dalam karung bernapas (bukan plastik rapat).',
+        ],
+      },
+    ];
+
+    const STORAGE_KEY = 'smartcompost_tutorial_progress_v1';
+
+    function readProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+      } catch { return {}; }
+    }
+    function writeProgress(obj) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+    }
+    function isDone(slug) {
+      const p = readProgress();
+      return !!p[slug];
+    }
+    function toggleDone(slug, val) {
+      const p = readProgress();
+      p[slug] = !!val;
+      writeProgress(p);
+      render(); // refresh sidebar/progress UI
+    }
+
+    /* ---------------------------
+     * Page Sections
+     * --------------------------- */
+    function homePage() {
+      return `
+      <header class="max-w-6xl mx-auto py-10">
+        <div class="card bg-white rounded-2xl border border-emerald-100 p-6 md:p-10 shadow-sm">
+          <div class="grid md:grid-cols-2 gap-8">
+            <div>
+              <h1 class="text-3xl md:text-4xl font-extrabold text-emerald-700">Belajar Kompos Secara Terstruktur</h1>
+              <p class="muted mt-3">Mulai dari pengertian, manfaat, langkah-langkah pembuatan, hingga melihat visualisasi perubahan kompos dari waktu ke waktu.</p>
+              <div class="mt-6 flex flex-wrap gap-3">
+                <a href="#/apa-itu" class="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700">Home</a>
+                <a href="#/tutorial" class="px-4 py-2 rounded-xl bg-amber-500 text-white hover:bg-amber-600">Mulai Membuat Kompos</a>
+                <a href="#/visualisasi" class="px-4 py-2 rounded-xl border border-emerald-300 hover:bg-emerald-50">Lihat Visualisasi</a>
+                <a href="monitoring.html" class="px-4 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700">Pantau Kondisi Kompos</a>
+              </div>
+            </div>
+            <div class="flex items-center justify-center">
+              <div class="w-full h-44 md:h-56 rounded-2xl bg-gradient-to-br from-emerald-100 to-emerald-200 border border-emerald-200 flex items-center justify-center">
+                <div class="text-6xl" aria-hidden="true">🪱🧺🌿</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>` + sectionApaItu() + sectionManfaat();
+    }
+
+    function sectionApaItu() {
+      return `
+      <section id="apa-itu" class="scroll-mt-24">
+        <div class="card bg-white rounded-2xl border border-emerald-100 p-6 md:p-10">
+          <h2 class="text-2xl md:text-3xl font-bold text-emerald-700">Apa itu Kompos?</h2>
+          <p class="muted mt-3 leading-7">Kompos adalah <span class="font-semibold">pupuk organik</span> hasil penguraian bahan organik oleh mikroorganisme. Proses alami ini dipercepat dengan pengelolaan <em>kelembapan</em>, <em>aerasi</em>, dan <em>rasio bahan coklat–hijau</em> yang tepat.</p>
+        </div>
+      </section>`;
+    }
+
+    function sectionManfaat() {
+      return `
+      <section id="manfaat" class="scroll-mt-24">
+        <div class="card bg-white rounded-2xl border border-emerald-100 p-6 md:p-10">
+          <h2 class="text-2xl md:text-3xl font-bold text-emerald-700">Manfaat Kompos</h2>
+          <div class="grid md:grid-cols-3 gap-6 mt-6">
+            ${[{
+              icon:'🌾', title:'Menyuburkan Tanah', text:'Menambah bahan organik, memperbaiki struktur, menahan air & nutrisi.'
+            },{
+              icon:'🗑️', title:'Mengurangi Sampah', text:'Mengalihkan sampah organik dari TPA sehingga emisi & bau berkurang.'
+            },{
+              icon:'💸', title:'Hemat Biaya', text:'Alternatif pupuk yang murah dan berkelanjutan.'
+            }].map(c => `
+              <div class='rounded-xl border border-emerald-100 bg-emerald-50/60 p-5'>
+                <div class='text-3xl'>${c.icon}</div>
+                <h3 class='font-semibold mt-2'>${c.title}</h3>
+                <p class='muted text-sm mt-1'>${c.text}</p>
+              </div>`).join('')}
+          </div>
+        </div>
+      </section>`;
+    }
+
+    function tutorialLanding() {
+      const doneCount = STEPS.filter(s => isDone(s.slug)).length;
+      const pct = Math.round((doneCount / STEPS.length) * 100);
+      return `
+      <section id="tutorial" class="scroll-mt-24">
+        <div class="card bg-white rounded-2xl border border-emerald-100 p-6 md:p-10">
+          <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h2 class="text-2xl md:text-3xl font-bold text-emerald-700">Tutorial Pembuatan Kompos</h2>
+              <p class="muted mt-2">Setiap tahapan tersedia sebagai halaman terpisah dengan penjelasan detail, visual, dan ceklis penyelesaian.</p>
+            </div>
+            <div class="min-w-[220px]">
+              <div class="text-sm mb-1 flex items-center justify-between"><span class="muted">Progres</span><span class="font-semibold">${doneCount}/${STEPS.length} • ${pct}%</span></div>
+              <div class="w-full h-2 rounded-full bg-emerald-100 overflow-hidden">
+                <div class="h-full bg-emerald-500 transition-all" style="width:${pct}%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 grid md:grid-cols-3 gap-6">
+            <aside class="md:col-span-1">
+              <ul class="space-y-2">
+                ${STEPS.map(s => `
+                  <li>
+                    <a href="#/tutorial/${s.slug}" class="flex items-center gap-3 px-3 py-2 rounded-xl border ${isDone(s.slug)?'border-emerald-300 bg-emerald-50':'border-emerald-100 hover:bg-emerald-50'}">
+                      <span class="text-xs w-6 h-6 grid place-items-center rounded-full ${isDone(s.slug)?'bg-emerald-600 text-white':'bg-emerald-100 text-emerald-700'}">${s.nomor}</span>
+                      <span class="text-sm font-medium">${s.judul}</span>
+                      ${isDone(s.slug)?'<span class="ml-auto text-emerald-600">✔</span>':''}
+                    </a>
+                  </li>`).join('')}
+              </ul>
+            </aside>
+
+            <div class="md:col-span-2">
+              <div class="rounded-2xl border border-emerald-100 p-5 bg-white">
+                <h3 class="font-semibold">Cara menggunakan</h3>
+                <ol class="list-decimal ml-5 mt-2 text-sm muted space-y-1">
+                  <li>Klik salah satu tahapan di samping untuk membuka halamannya.</li>
+                  <li>Baca detail, lihat visualisasi, lalu centang <em>tahap selesai</em> bila sudah dilakukan.</li>
+                  <li>Progres akan tersimpan otomatis di perangkat ini (localStorage).</li>
+                </ol>
+                <div class="mt-4 flex gap-3">
+                  <a href="#/tutorial/${STEPS[0].slug}" class="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700">Mulai Tahap 1</a>
+                  <a href="#/visualisasi" class="px-4 py-2 rounded-xl border border-emerald-300 hover:bg-emerald-50">Lihat Visualisasi Waktu</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>`;
+    }
+
+    function stepPage(idx) {
+      const s = STEPS[idx];
+      const done = isDone(s.slug);
+      const prev = STEPS[idx - 1];
+      const next = STEPS[idx + 1];
+      return `
+      <section class="scroll-mt-24">
+        <div class="grid md:grid-cols-3 gap-6">
+          <aside class="md:col-span-1 card bg-white rounded-2xl border border-emerald-100 p-4">
+            <h4 class="font-semibold mb-2">Tahapan</h4>
+            <ul class="space-y-2">
+              ${STEPS.map(x => `
+                <li>
+                  <a href="#/tutorial/${x.slug}" class="flex items-center gap-3 px-3 py-2 rounded-xl border ${isDone(x.slug)?'border-emerald-300 bg-emerald-50':'border-emerald-100 hover:bg-emerald-50'}">
+                    <span class="text-xs w-6 h-6 grid place-items-center rounded-full ${isDone(x.slug)?'bg-emerald-600 text-white':'bg-emerald-100 text-emerald-700'}">${x.nomor}</span>
+                    <span class="text-sm font-medium">${x.judul}</span>
+                    ${isDone(x.slug)?'<span class="ml-auto text-emerald-600">✔</span>':''}
+                  </a>
+                </li>`).join('')}
+            </ul>
+            <button id="resetProgress" class="mt-4 text-xs text-red-600 hover:underline">Reset progres</button>
+          </aside>
+
+          <div class="md:col-span-2 card bg-white rounded-2xl border border-emerald-100 p-6 md:p-10">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="text-xs uppercase tracking-wide muted">Tahap ${s.nomor} dari ${STEPS.length}</div>
+                <h2 class="text-2xl md:text-3xl font-bold text-emerald-700">${s.judul}</h2>
+                <p class="muted mt-2">${s.ringkas}</p>
+              </div>
+              <label class="flex items-center gap-2 select-none">
+                <input type="checkbox" id="doneToggle" ${done?'checked':''} class="w-5 h-5 accent-emerald-600">
+                <span class="text-sm font-medium">Tandai tahap selesai</span>
+              </label>
+            </div>
+
+            <div class="mt-6 grid md:grid-cols-2 gap-6">
+              <!-- Detail -->
+              <div class="rounded-xl border border-emerald-100 p-4 bg-emerald-50/50">
+                <h3 class="font-semibold">Penjelasan Detail</h3>
+                <p class="text-sm mt-2 leading-6">${s.detail}</p>
+                <ul class="mt-3 text-sm list-disc ml-5 space-y-1">
+                  ${s.tips.map(t => `<li>${t}</li>`).join('')}
+                </ul>
+              </div>
+
+              <!-- Visual -->
+              <div class="rounded-xl border border-emerald-100 p-4 bg-gradient-to-br from-emerald-50 to-emerald-100 h-full flex flex-col">
+                <h3 class="font-semibold">Visualisasi</h3>
+                <div class="flex-1 grid place-items-center">
+                  <div class="text-6xl" aria-hidden="true">${s.visual.split(' ')[0]}</div>
+                </div>
+                <p class="text-xs muted mt-2">${s.visual}</p>
+                <div class="mt-3 text-xs muted">Catatan: Ganti komponen ini dengan foto/diagram tahap sebenarnya bila sudah tersedia.</div>
+              </div>
+            </div>
+
+            <!-- Navigasi antar tahap -->
+            <div class="mt-8 flex items-center justify-between">
+              ${prev ? `<a href="#/tutorial/${prev.slug}" class="px-4 py-2 rounded-xl border border-emerald-300 hover:bg-emerald-50">← ${prev.judul}</a>` : `<span></span>`}
+              ${next ? `<a href="#/tutorial/${next.slug}" class="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700">${next.judul} →</a>` : `<a href="#/tutorial" class="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700">Selesai • Kembali ke ringkasan</a>`}
+            </div>
+          </div>
+        </div>
+      </section>`;
+    }
+
+    function sectionVisualisasi() {
+      return `
+      <section id="visualisasi" class="scroll-mt-24">
+        <div class="card bg-white rounded-2xl border border-emerald-100 p-6 md:p-10">
+          <div class="flex items-center justify-between gap-4 flex-wrap">
+            <h2 class="text-2xl md:text-3xl font-bold text-emerald-700">Visualisasi Perubahan Kompos</h2>
+            <span class="muted text-sm">Geser waktu untuk melihat tahap-tahap</span>
+          </div>
+          <div class="mt-6 grid md:grid-cols-2 gap-8">
+            <div>
+              <label for="daySlider" class="block text-sm muted">Hari ke-<span id="dayValue" class="font-semibold">1</span></label>
+              <input id="daySlider" type="range" min="1" max="45" value="1" class="w-full accent-emerald-600">
+              <div class="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+                <p id="stageText" class="text-sm">Tahap awal: bahan organik baru dimasukkan. Potong kecil, jaga lembap, mulai terjadi pemanasan.</p>
+              </div>
+              <div class="mt-6">
+                <div class="flex justify-between text-xs muted mb-1"><span>Awal (1–7)</span><span>Aktif (8–25)</span><span>Matang (26–45)</span></div>
+                <div class="w-full h-2 rounded-full bg-emerald-100 overflow-hidden">
+                  <div id="progress" class="h-full bg-emerald-500 transition-all" style="width: 2%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center justify-center">
+              <div id="stageCard" class="w-full md:w-96 h-56 rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-emerald-100 flex flex-col items-center justify-center transition-all">
+                <div id="stageEmoji" class="text-6xl select-none">🟢</div>
+                <div id="stageLabel" class="mt-2 text-sm muted">Tahap Awal</div>
+              </div>
+            </div>
+          </div>
+          <p class="muted text-xs mt-6">*Durasi & rentang hari dapat berbeda tergantung bahan, kelembapan, ukuran potongan, dan suhu lingkungan.</p>
+        </div>
+      </section>`;
+    }
+
+    /* ---------------------------
+     * Rendering & Router Logic
+     * --------------------------- */
+    function render() {
+      const app = document.getElementById('app');
+      const hash = location.hash.replace(/^#/, '');
+      const path = hash || '';
+      const routeFn = routes[path] || (() => {
+        // dynamic match for /tutorial/<slug>
+        if (path.startsWith('/tutorial/')) {
+          const slug = path.split('/')[2];
+          const idx = STEPS.findIndex(s => s.slug === slug);
+          if (idx >= 0) return stepPage(idx);
+        }
+        return notFound();
+      });
+      app.innerHTML = routeFn();
+
+      // attach listeners that need DOM
+      attachCommonInteractions();
+
+      // step page handlers
+      const doneToggle = document.getElementById('doneToggle');
+      if (doneToggle) {
+        const slug = location.hash.split('/')[2];
+        doneToggle.addEventListener('change', (e) => toggleDone(slug, e.target.checked));
+      }
+      const resetBtn = document.getElementById('resetProgress');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => { localStorage.removeItem(STORAGE_KEY); render(); });
+      }
+    }
+
+    function notFound() {
+      return `
+        <section class="py-16">
+          <div class="card bg-white rounded-2xl border border-emerald-100 p-8 text-center">
+            <div class="text-6xl">🧐</div>
+            <h2 class="text-2xl font-bold mt-2">Halaman tidak ditemukan</h2>
+            <p class="muted mt-2">Periksa URL atau kembali ke beranda.</p>
+            <a href="#" class="inline-block mt-4 px-4 py-2 rounded-xl bg-emerald-600 text-white">Kembali</a>
+          </div>
+        </section>`;
+    }
+
+    function attachCommonInteractions() {
+      // Visualisasi slider (sectionVisualisasi)
+      const daySlider = document.getElementById('daySlider');
+      const dayValue  = document.getElementById('dayValue');
+      const stageText = document.getElementById('stageText');
+      const stageCard = document.getElementById('stageCard');
+      const stageEmoji= document.getElementById('stageEmoji');
+      const stageLabel= document.getElementById('stageLabel');
+      const progress  = document.getElementById('progress');
+
+      function updateStage(day) {
+        if (!daySlider) return; // not on this page
+        dayValue.textContent = day;
+        const pct = ((day - 1) / (45 - 1)) * 100; // 1..45
+        progress.style.width = pct + '%';
+        if (day <= 7) {
+          stageText.textContent = 'Tahap awal: bahan organik baru dimasukkan. Potong kecil, jaga kelembapan (~50–60%), dan mulai aduk ringan.';
+          stageCard.style.backgroundImage = 'linear-gradient(to bottom right,#ecfeff,#d1fae5)';
+          stageEmoji.textContent = '🟢';
+          stageLabel.textContent = 'Tahap Awal';
+        } else if (day <= 25) {
+          stageText.textContent = 'Fase aktif: penguraian cepat. Suhu cenderung hangat/panas; aduk tiap 5–7 hari; tambah bahan coklat jika bau.';
+          stageCard.style.backgroundImage = 'linear-gradient(to bottom right,#ecfdf5,#bbf7d0)';
+          stageEmoji.textContent = '🟡';
+          stageLabel.textContent = 'Fase Aktif';
+        } else {
+          stageText.textContent = 'Pematangan: suhu menurun stabil. Kompos menggelap, remah, dan tidak berbau menyengat—tanda siap digunakan.';
+          stageCard.style.backgroundImage = 'linear-gradient(to bottom right,#fef9c3,#fde68a)';
+          stageEmoji.textContent = '🟤';
+          stageLabel.textContent = 'Pematangan';
+        }
+      }
+      if (daySlider) {
+        daySlider.addEventListener('input', (e) => updateStage(parseInt(e.target.value,10)));
+        updateStage(parseInt(daySlider.value || '1',10));
+      }
+    }
+
+    window.addEventListener('hashchange', render);
+    window.addEventListener('load', () => { if (!location.hash) location.hash = '#'; render(); });
+  </script>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-emerald-100">
+    <div class="max-w-6xl mx-auto px-4 py-8 text-center text-sm muted">
+      © 2025 Smart Compost — Edukasi. Dibuat untuk pembelajaran interaktif.
+    </div>
+  </footer>
+</body>
+</html>
